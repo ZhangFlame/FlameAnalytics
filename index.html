@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线 Stata/Python 实证分析 - BY张张</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus/dist/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/element-plus"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+    <base target="_blank">
+</head>
+
+<body>
+    <div id="app">
+        <el-dialog v-model="welcomeDialogVisible" :show-close="false" width="650px" top="8vh" class="welcome-dialog" align-center>
+            <div class="welcome-header">
+                <h2>👋 欢迎来到在线实证分析平台</h2>
+                <p>一键数据处理、建立模型、生成结果和代码</p>
+            </div>
+            <div class="welcome-body">
+                <div class="welcome-notice">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><circle cx="12" cy="10" r="1"/><line x1="12" y1="14" x2="12" y2="14.01" stroke-width="3" stroke-linecap="round"/></svg>
+                    <div>
+                        <strong>重要免责声明：</strong>
+                        <p style="margin: 4px 0 0 0; color: #475569;">本网站计算结果仅供参考，不可直接作为依据。请自行运行程序进行严谨验证。<br><span style="color: #2563eb; font-weight: 600;">祝大家科研顺利，毕业无忧，Paper 拿到手软！🚀</span></p>
+                    </div>
+                </div>
+
+                <div class="welcome-projects-title">发现更多好玩 / 实用的工具</div>
+                <div class="welcome-projects-grid">
+                    <div class="project-item">
+                        <img src="https://free.picui.cn/free/2026/03/01/69a41c386b739.png" alt="张张小栈公众号">
+                        <span>公众号·张张小栈</span>
+                    </div>
+                    <div class="project-item">
+                        <img src="https://free.picui.cn/free/2026/03/01/69a41c730376d.jpg" alt="张张百宝箱程序">
+                        <span>小程序·百宝箱</span>
+                    </div>
+                    <div class="project-item">
+                        <img src="https://free.picui.cn/free/2026/03/01/69a41c38c4984.jpg" alt="欢乐西瓜小游戏">
+                        <span>小游戏·欢乐西瓜</span>
+                    </div>
+                    <div class="project-item">
+                        <img src="https://free.picui.cn/free/2026/03/01/69a41c38c0f9b.png" alt="喝酒小程序">
+                        <span>小程序·喝酒游戏</span>
+                    </div>
+                </div>
+
+                <!-- 新增 GitHub 开源信息块 -->
+                <div style="margin-top: 20px; padding: 12px 16px; background: #f1f5f9; border-radius: 10px; display: flex; align-items: center; gap: 12px;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" style="color: #0f172a;"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+                    <span style="font-size: 13px; color: #1e293b;">
+                        本网站已GitHub开源：
+                        <a href="https://github.com/ZhangFlame/FlameAnalytics" target="_blank" style="color: #2563eb; font-weight: 600; text-decoration: none;">ZhangFlame/FlameAnalytics</a>
+                        欢迎 Star/Fork
+                    </span>
+                </div>
+            </div>
+            <template #footer>
+                <el-button type="primary" size="large" class="welcome-btn clean-glow-btn" @click="welcomeDialogVisible = false">已知晓，开启学术之旅</el-button>
+            </template>
+        </el-dialog>
+
+        <div class="light-bg-grid"></div>
+
+        <header class="navbar">
+            <div class="navbar-left">
+                <span class="random-tip">
+                    <svg class="tech-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                    {{ randomTip }}
+                </span>
+            </div>
+            <div class="navbar-center">
+                <div class="title-row">
+                    <span class="logo">在线实证分析平台</span>
+                    <span class="badge-signature">BY 张张</span>
+                </div>
+                <div class="sub-title">计算结果仅供参考，请自行用程序验证</div>
+            </div>
+            <div class="navbar-right">
+                <el-button type="primary" class="nav-btn-primary" @click="uploadDialogVisible = true">
+                    <svg class="tech-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                    上传数据
+                </el-button>
+                <el-button class="nav-btn-outline" @click="previewDialogVisible = true" :disabled="!rawData.length">
+                    <svg class="tech-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    预览数据
+                </el-button>
+            </div>
+        </header>
+
+        <el-dialog v-model="uploadDialogVisible" title="上传数据文件" width="480px" destroy-on-close class="clean-dialog">
+            <el-upload class="upload-area" drag action="#" :auto-upload="false" :show-file-list="false"
+                @change="handleFileUpload" accept=".csv, .xlsx, .xls">
+                <div class="upload-icon-wrapper">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v20M17 7l-5-5-5 5"/><path d="M2 12h20"/><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z"/></svg>
+                </div>
+                <div class="el-upload__text">
+                    拖拽文件至此 或 <em class="text-primary">点击选择</em><br>
+                    <span class="upload-subtext">支持 CSV/Excel (BY张张：为你一键生成结果)</span>
+                </div>
+            </el-upload>
+        </el-dialog>
+
+        <el-dialog v-model="previewDialogVisible" title="数据预览 (Top 100)" width="85%" top="6vh"
+            class="clean-dialog preview-dialog">
+            <el-table :data="rawData.slice(0,100)" height="500" style="width: 100%" border class="clean-preview-table">
+                <el-table-column v-for="col in variables" :key="col" :prop="col" :label="col" min-width="130"
+                    show-overflow-tooltip></el-table-column>
+            </el-table>
+        </el-dialog>
+
+        <div class="layout">
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <div class="sidebar-title">
+                        <svg class="tech-icon text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                        数据概览
+                    </div>
+                    
+                    <div class="file-info-container">
+                        <svg class="file-info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        <span class="file-info-name" :title="uploadedFileName === 'dataset.dta' ? '尚未加载数据文件' : uploadedFileName">
+                            {{ uploadedFileName === 'dataset.dta' ? '尚未加载数据文件' : uploadedFileName }}
+                        </span>
+                    </div>
+
+                    <div class="data-stats" :class="{ empty: rawData.length === 0 }">
+                        <div class="stat-item">
+                            <span class="stat-label">样本量(Obs):</span>
+                            <span class="stat-value text-primary">{{ rawData.length || '0' }}</span>
+                        </div>
+                        <div class="stat-divider"></div>
+                        <div class="stat-item">
+                            <span class="stat-label">变量数(Vars):</span>
+                            <span class="stat-value text-indigo">{{ variables.length || '0' }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="var-list">
+                    <div v-if="variables.length === 0" class="empty-tips">
+                        <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M13 2v7h7"/><circle cx="12" cy="14" r="3"/></svg>
+                        <div class="empty-title">等待导入数据集...</div>
+                        <div class="empty-desc">让张张为你扫清实证障碍</div>
+                    </div>
+                    <div v-else>
+                        <div class="var-list-header">变量分配与处理：</div>
+                        <div v-for="v in variables" :key="v" class="var-card">
+                            <div class="var-card-header">
+                                <div class="var-name" :title="v">{{ v }}</div>
+                                
+                                <el-popover placement="bottom-end" :width="260" trigger="hover" popper-class="process-popover">
+                                    <template #reference>
+                                        <span v-if="appliedProcessing[v]" class="process-badge processed">
+                                            {{ appliedProcessing[v].length > 3 ? appliedProcessing[v].substring(0, 3) + '...' : appliedProcessing[v] }}
+                                            <svg class="dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+                                        </span>
+                                        <span v-else class="process-badge default">
+                                            处理
+                                            <svg class="dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+                                        </span>
+                                    </template>
+                                    <div class="process-menu-list">
+                                        <div class="process-menu-item" @click="processVar(v, 'log')">取对数 (ln)</div>
+                                        <div class="process-menu-item" @click="processVar(v, 'log1')">加1取对 (ln(x+1))</div>
+                                        <div class="process-menu-item" @click="processVar(v, 'winsor')">1%-99%缩尾</div>
+                                        <div class="process-menu-item" @click="processVar(v, 'std')">Z标准化 (Std)</div>
+                                        <div class="process-menu-item" @click="processVar(v, 'center')">均值中心化</div>
+                                        <div class="process-menu-item" @click="processVar(v, 'lag')">滞后一期 (L1)</div>
+                                        <div class="process-menu-item" @click="processVar(v, 'diff')">一阶差分 (D1)</div>
+                                        <div class="process-divider"></div>
+                                        <div class="process-menu-item danger-item" @click="processVar(v, 'restore')">还原原始数据</div>
+                                    </div>
+                                </el-popover>
+                            </div>
+
+                            <div class="var-actions">
+                                <template v-for="slot in currentSlots" :key="slot.key">
+                                    <div v-if="slot.type === 'single'" class="var-btn"
+                                        :class="['btn-' + slot.tagType, { 'btn-selected': formValues[slot.key] === v }]"
+                                        @click="assignVar(v, slot.key)">
+                                        <svg v-if="formValues[slot.key] === v" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:12px; height:12px; margin-right:2px; vertical-align:-2px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        {{ formValues[slot.key] === v ? '已选' : (slot.labelShort || slot.label) }}
+                                    </div>
+                                    <div v-else-if="slot.type === 'multiple'" class="var-btn"
+                                        :class="['btn-' + slot.tagType, { 'btn-selected': formValues[slot.key] && formValues[slot.key].includes(v) }]"
+                                        @click="assignVar(v, slot.key)">
+                                        <svg v-if="formValues[slot.key] && formValues[slot.key].includes(v)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:12px; height:12px; margin-right:2px; vertical-align:-2px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        {{ (formValues[slot.key] && formValues[slot.key].includes(v)) ? '已选' : (slot.labelShort || slot.label) }}
+                                    </div>
+                                </template>
+                                <div v-if="modelType === 'entropy'" class="var-btn btn-pos"
+                                    :class="{ 'btn-selected': formValues.indicators && formValues.indicators.some(item => item.name === v && item.direction === 'positive') }"
+                                    @click="assignVar(v, 'e-pos')">
+                                    <svg v-if="formValues.indicators && formValues.indicators.some(item => item.name === v && item.direction === 'positive')" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:12px; height:12px; margin-right:2px; vertical-align:-2px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    {{ (formValues.indicators && formValues.indicators.some(item => item.name === v && item.direction === 'positive')) ? '已选' : '正向' }}
+                                </div>
+                                <div v-if="modelType === 'entropy'" class="var-btn btn-neg"
+                                    :class="{ 'btn-selected': formValues.indicators && formValues.indicators.some(item => item.name === v && item.direction === 'negative') }"
+                                    @click="assignVar(v, 'e-neg')">
+                                    <svg v-if="formValues.indicators && formValues.indicators.some(item => item.name === v && item.direction === 'negative')" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:12px; height:12px; margin-right:2px; vertical-align:-2px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    {{ (formValues.indicators && formValues.indicators.some(item => item.name === v && item.direction === 'negative')) ? '已选' : '负向' }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="workspace">
+                <div class="panel-box">
+                    <div class="panel-heading">
+                        <svg class="heading-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>
+                        模型与变量选择
+                    </div>
+
+                    <div class="config-row-main">
+                        <div class="config-section">
+                            <span class="config-label">研究模块分类：</span>
+                            <el-radio-group v-model="moduleCategory" @change="handleCategoryChange" size="default" class="clean-radio-group">
+                                <el-radio-button label="econometrics">计量模型</el-radio-button>
+                                <el-radio-button label="machine_learning">机器学习</el-radio-button>
+                                <el-radio-button label="plotting">期刊绘图</el-radio-button>
+                            </el-radio-group>
+                        </div>
+                        <div class="config-divider"></div>
+                        <div class="config-section" style="flex:1;">
+                            <span class="config-label">具体分析内容：</span>
+                            
+                            <el-popover placement="bottom-start" :width="450" trigger="hover" popper-class="model-selector-popover">
+                                <template #reference>
+                                    <div class="model-trigger-btn">
+                                        <span class="model-name-text">{{ modelNameDisplay || '请选择分析模型' }}</span>
+                                        <svg class="dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+                                    </div>
+                                </template>
+                                
+                                <div class="model-grid-panel">
+                                    <div class="model-grid-header">选择{{ {'econometrics':'计量模型', 'machine_learning':'机器学习', 'plotting':'期刊绘图'}[moduleCategory] }}</div>
+                                    <div class="model-items-container">
+                                        <div v-for="model in ModelRegistry.getModelsByCategory(moduleCategory)" 
+                                             :key="model.id" 
+                                             class="model-item-card" 
+                                             :class="{ 'is-active': modelType === model.id }"
+                                             @click="modelType = model.id; resetResults()">
+                                            <div class="model-item-title">{{ model.name }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </el-popover>
+                        </div>
+                    </div>
+
+                    <div class="slot-group">
+                        <template v-for="slot in currentSlots" :key="slot.key">
+                            <div class="slot-row" v-if="slot.type !== 'entropy'">
+                                <div class="slot-label">{{ slot.label }}</div>
+                                <div class="slot-content">
+                                    <template v-if="slot.type === 'single'">
+                                        <el-tag v-if="formValues[slot.key]" closable
+                                            :type="tagTypeMap[slot.tagType] || 'info'"
+                                            @close="assignVar(formValues[slot.key], slot.key)" size="large" class="clean-tag">{{ formValues[slot.key] }}</el-tag>
+                                        <span v-else class="slot-placeholder">请在左侧点击[{{ slot.labelShort || slot.label }}]...</span>
+                                    </template>
+                                    <template v-else-if="slot.type === 'multiple'">
+                                        <el-tag v-for="(v, idx) in formValues[slot.key]" :key="v" closable
+                                            :type="tagTypeMap[slot.tagType] || 'info'"
+                                            @close="assignVar(v, slot.key)" size="large" class="clean-tag">{{ v }}</el-tag>
+                                        <span v-if="!formValues[slot.key] || formValues[slot.key].length === 0"
+                                            class="slot-placeholder">支持多选，请在左侧点击[{{ slot.labelShort || slot.label }}]...</span>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                        <div class="slot-row" v-if="modelType === 'entropy'">
+                            <div class="slot-label">赋权评价指标体系</div>
+                            <div class="slot-content">
+                                <el-tag v-for="(item, idx) in formValues.indicators" :key="item.name" closable
+                                    :type="item.direction === 'positive' ? 'success' : 'danger'"
+                                    @close="removeEntropyVar(idx)" size="large" class="clean-tag">{{ item.name }} ({{ item.direction === 'positive' ? '正向' : '负向' }})</el-tag>
+                                <span v-if="!formValues.indicators || formValues.indicators.length === 0"
+                                    class="slot-placeholder">至少组合 2 个指标进入模型...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="config-flat-panel" v-if="currentExtraConfigs.length > 0 && moduleCategory !== 'plotting'">
+                        <div class="panel-heading" style="font-size: 13px; margin: 16px 0 10px 0; color: #475569; border-bottom: 1px dashed #cbd5e1; padding-bottom: 8px;">
+                            <svg class="tech-icon text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                            模型设置
+                        </div>
+                        <config-grid :config-schema="currentExtraConfigs" :model-value="extraConfigs" :variables="variables" :predefine-colors="predefineColors"></config-grid>
+                    </div>
+
+                    <div class="formula-box" v-if="modelType && modelType !== 'desc' && moduleCategory !== 'plotting'">
+                        <component v-if="currentFormulaComponent" :is="currentFormulaComponent"
+                            :form-values="formValues" :extra-configs="extraConfigs">
+                        </component>
+                    </div>
+
+                    <div class="action-buttons">
+                        <el-button type="primary" size="large" @click="runAnalysis" :loading="isCalculating" class="run-btn clean-glow-btn">
+                            <svg v-if="!isCalculating" class="tech-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                            {{ isCalculating ? '运算中...' : '一键运行' }}
+                        </el-button>
+                        <el-button size="large" @click="clearSlots" class="clean-btn-plain">清空归零</el-button>
+                    </div>
+                </div>
+
+                <div class="panel-box result-panel">
+                    <div v-if="!hasResult" class="empty-result">
+                        <svg class="empty-result-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                        <div class="empty-result-title">完成上方变量设置，一键生成学术结果与程序</div>
+                    </div>
+
+                    <el-tabs v-else v-model="activeTab" class="clean-tabs">
+                        <el-tab-pane label="计算结果" name="table">
+                            <div class="academic-table-wrapper"
+                                v-if="moduleCategory === 'econometrics' || moduleCategory === 'machine_learning' || moduleCategory === 'plotting'">
+                                <component v-if="currentResultComponent" :is="currentResultComponent"
+                                    :results="modelResults" :real-stats="realStats" :form-values="formValues"
+                                    :extra-configs="extraConfigs" :all-vars="allVars" :formatters="formatters"
+                                    :config-schema="currentExtraConfigs" :variables="variables" :predefine-colors="predefineColors">
+                                </component>
+                            </div>
+                        </el-tab-pane>
+                        <el-tab-pane label=" 分析代码" name="code">
+                            <div class="code-header">
+                                <el-button size="small" @click="copyStataCode" class="copy-btn">
+                                    <svg class="tech-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                                    一键带走去运行
+                                </el-button>
+                            </div>
+                            <div class="stata-code">{{ stataCode }}</div>
+                        </el-tab-pane>
+                    </el-tabs>
+                </div>
+            </div>
+        </div>
+
+        <footer class="app-footer">
+            <span class="footer-content">
+                <svg class="footer-icon text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2" ry="2"/></svg>
+                扫清实证障碍，助力 Paper 落地，微信公众号：<span class="highlight-text">张张小栈</span>
+            </span>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+
+    <script src="utils.js"></script>
+    <script src="registry.js"></script>
+    <script src="variableProcessor.js"></script>
+
+    <script src="plotConfigBase.js"></script>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
